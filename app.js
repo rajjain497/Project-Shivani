@@ -13,8 +13,8 @@ const app = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve static files from the root directory
+app.use(express.static(path.join(__dirname)));
 
 // Meal plan and grocery data (initially empty, admin will upload them)
 let mealPlan = [];
@@ -39,17 +39,17 @@ const upload = multer({ storage });
 
 // Serve Shivani login page
 app.get('/shivani-login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'shivani-login.html'));
+  res.sendFile(path.join(__dirname, 'shivani-login.html'));
 });
 
 // Serve Shivani dashboard page
 app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
+  res.sendFile(path.join(__dirname, 'dashboard.html'));
 });
 
 // Serve Shivani meal planner
 app.get('/meal-planner', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'meal-planner.html'));
+  res.sendFile(path.join(__dirname, 'meal-planner.html'));
 });
 
 // Fetch meal plan for Shivani
@@ -79,7 +79,7 @@ app.post('/upload-meal-photo/:day', upload.single('mealPhoto'), (req, res) => {
 
 // Serve Shivani's grocery list
 app.get('/grocery-list', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'grocery-list.html'));
+  res.sendFile(path.join(__dirname, 'grocery-list.html'));
 });
 
 // Fetch grocery list for Shivani
@@ -100,7 +100,7 @@ app.get('/get-grocery-list', (req, res) => {
 
 // Serve routine planner page
 app.get('/routine-planner', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'routine.html'));
+  res.sendFile(path.join(__dirname, 'routine.html'));
 });
 
 // Add task to routine planner
@@ -117,7 +117,7 @@ app.post('/add-task', (req, res) => {
 
 // Serve gratitude journal page
 app.get('/gratitude-journal', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'gratitude-journal.html'));
+  res.sendFile(path.join(__dirname, 'gratitude-journal.html'));
 });
 
 // Add gratitude entries for a specific date
@@ -146,7 +146,7 @@ app.get('/get-gratitude-entries', (req, res) => {
 
 // Serve sleep tracker page
 app.get('/sleep-tracker', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'sleep-tracker.html'));
+  res.sendFile(path.join(__dirname, 'sleep-tracker.html'));
 });
 
 // Log sleep and wake times
@@ -156,42 +156,35 @@ app.post('/log-sleep', (req, res) => {
   
     sleepLogs.push({ action, time: logTime });
     res.json({ success: true, message: `Logged ${action} time successfully at ${logTime}`, sleepLogs });
-  });
-  
-  
-  // Fetch last 15 days of sleep logs
-  app.get('/get-sleep-logs', (req, res) => {
-    const last15DaysLogs = sleepLogs.slice(-15);  // Fetch the last 15 logs
-    res.json(last15DaysLogs);
-  });
+});
 
-  // Route to delete an individual sleep log entry by index
+// Fetch last 15 days of sleep logs
+app.get('/get-sleep-logs', (req, res) => {
+  const last15DaysLogs = sleepLogs.slice(-15);
+  res.json(last15DaysLogs);
+});
+
+// Route to delete an individual sleep log entry by index
 app.post('/delete-sleep-log', (req, res) => {
     const { index } = req.body;
     if (index >= 0 && index < sleepLogs.length) {
-      sleepLogs.splice(index, 1);  // Remove the sleep log at the specified index
+      sleepLogs.splice(index, 1);
       res.json({ success: true, message: 'Sleep log entry deleted successfully.', sleepLogs });
     } else {
       res.status(400).json({ success: false, message: 'Invalid index.' });
     }
-  });
-
-  // Define the route to delete a sleep log by index
-app.delete('/delete-sleep-log/:index', (req, res) => {
-    const index = parseInt(req.params.index);
-
-    if (index >= 0 && index < sleepLogs.length) {
-        // Remove the log at the specified index
-        sleepLogs.splice(index, 1);
-        res.json({ success: true, message: 'Sleep log deleted successfully!' });
-    } else {
-        res.status(404).json({ success: false, message: 'Sleep log not found.' });
-    }
 });
 
+app.delete('/delete-sleep-log/:index', (req, res) => {
+  const index = parseInt(req.params.index);
 
-  
-  
+  if (index >= 0 && index < sleepLogs.length) {
+      sleepLogs.splice(index, 1);
+      res.json({ success: true, message: 'Sleep log deleted successfully!' });
+  } else {
+      res.status(404).json({ success: false, message: 'Sleep log not found.' });
+  }
+});
 
 // ---------------------
 // To-Do List
@@ -199,7 +192,7 @@ app.delete('/delete-sleep-log/:index', (req, res) => {
 
 // Serve to-do list page
 app.get('/to-do-list', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'to-do-list.html'));
+  res.sendFile(path.join(__dirname, 'to-do-list.html'));
 });
 
 // Add task to to-do list
@@ -216,12 +209,12 @@ app.post('/add-todo', (req, res) => {
 
 // Serve Admin login page
 app.get('/admin-login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin-login.html'));
+  res.sendFile(path.join(__dirname, 'admin-login.html'));
 });
 
 // Serve Admin dashboard
 app.get('/admin-panel', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'admin-panel.html'));
+  res.sendFile(path.join(__dirname, 'admin-panel.html'));
 });
 
 // Upload meal plan (.csv or .xlsx)
@@ -273,7 +266,7 @@ app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
       })
       .on('end', () => {
         groceryList = newGroceryList;
-        fs.unlinkSync(filePath);
+        fs.unlinkSync(filePath);  // Delete the file after processing
         res.send('Grocery list uploaded and processed from CSV.');
       });
   } else if (fileExt === '.xlsx') {
@@ -287,10 +280,10 @@ app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
       checked: false
     }));
 
-    fs.unlinkSync(filePath);
+    fs.unlinkSync(filePath);  // Delete the file after processing
     res.send('Grocery list uploaded and processed from XLSX.');
   } else {
-    fs.unlinkSync(filePath);
+    fs.unlinkSync(filePath);  // Delete the file if it's an unsupported format
     res.status(400).send('Unsupported file format. Only .csv or .xlsx files allowed.');
   }
 });
