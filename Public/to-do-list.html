@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+            padding: 50px;
+        }
+        table {
+            width: 60%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .task-form {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="text"], input[type="date"], input[type="time"] {
+            padding: 10px;
+            margin: 5px;
+            width: 80%;
+        }
+        .task-slot {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>To-Do List</h1>
+
+    <div class="task-form">
+        <form id="task-form">
+            <input type="text" id="task-input" placeholder="Enter task" required><br>
+            <label for="date-input">Select Date:</label>
+            <input type="date" id="date-input" required><br>
+            <label for="time-input">Select Time:</label>
+            <input type="time" id="time-input" min="06:30" max="22:30" step="1800" required><br>
+            <button type="submit">Add Task</button>
+        </form>
+    </div>
+
+    <table id="todo-table">
+        <thead>
+            <tr>
+                <th>Task</th>
+                <th>Date</th>
+                <th>Time</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- To-do list items will be dynamically added here -->
+        </tbody>
+    </table>
+
+    <script>
+        const todoTable = document.querySelector('#todo-table tbody');
+        let todoList = []; // Store the tasks
+
+        // Handle adding a task
+        document.getElementById('task-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const task = document.getElementById('task-input').value;
+            const date = document.getElementById('date-input').value;
+            const time = document.getElementById('time-input').value;
+
+            // Add the task to the to-do list
+            todoList.push({ task, date, time });
+
+            // Add the task to the table
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${task}</td>
+                <td>${date}</td>
+                <td>${time}</td>
+                <td><button class="delete-task" data-index="${todoList.length - 1}">Delete</button></td>
+            `;
+            todoTable.appendChild(row);
+
+            // Clear the input fields
+            document.getElementById('task-input').value = '';
+            document.getElementById('date-input').value = '';
+            document.getElementById('time-input').value = '';
+        });
+
+        // Event delegation for deleting tasks
+        todoTable.addEventListener('click', function (event) {
+            if (event.target.classList.contains('delete-task')) {
+                const index = event.target.getAttribute('data-index');
+                todoList.splice(index, 1); // Remove the task from the array
+
+                // Re-render the table after deletion
+                renderTodoTable();
+            }
+        });
+
+        // Render the to-do table
+        function renderTodoTable() {
+            todoTable.innerHTML = ''; // Clear the table
+
+            todoList.forEach((todo, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${todo.task}</td>
+                    <td>${todo.date}</td>
+                    <td>${todo.time}</td>
+                    <td><button class="delete-task" data-index="${index}">Delete</button></td>
+                `;
+                todoTable.appendChild(row);
+            });
+        }
+    </script>
+</body>
+</html>

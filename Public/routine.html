@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Routine Planner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+            padding: 50px;
+        }
+        table {
+            width: 60%;
+            margin: auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .task-form {
+            margin-bottom: 20px;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        input[type="text"], input[type="time"], input[type="date"] {
+            padding: 10px;
+            margin: 5px;
+            width: 80%;
+        }
+        .task-slot {
+            text-align: center;
+            cursor: pointer;
+        }
+        .free-slot {
+            background-color: #c8e6c9;
+            color: green;
+        }
+        .occupied-slot {
+            background-color: #f8d7da;
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Routine Planner</h1>
+
+    <div class="task-form">
+        <label for="date-input">Select Date:</label>
+        <input type="date" id="date-input" required>
+
+        <form id="task-form">
+            <input type="text" id="task-input" placeholder="Enter task" required>
+            <input type="time" id="time-input" min="06:30" max="22:30" step="1800" required>
+            <button type="submit">Add Task</button>
+        </form>
+    </div>
+
+    <table id="routine-table">
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Task</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Time slots will be dynamically generated here -->
+        </tbody>
+    </table>
+
+    <script>
+        const routineTable = document.querySelector('#routine-table tbody');
+        let routineData = {}; // Store routine data by date
+        let editingTask = null; // Track if a task is being edited
+
+        // Create time slots from 6:30 AM to 10:30 PM
+        const timeSlots = [];
+        let startHour = 6, startMinute = 30;
+
+        while (startHour < 22 || (startHour === 22 && startMinute === 30)) {
+            const formattedTime = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+            timeSlots.push(formattedTime);
+            if (startMinute === 30) {
+                startHour += 1;
+                startMinute = 0;
+            } else {
+                startMinute = 30;
+            }
+        }
+
+        // Convert 24-hour format to 12-hour format with AM/PM
+        function convertTo12Hour(time) {
+            const [hour, minute] = time.split(':').map(Number);
+            const period = hour >= 12 ? 'PM' : 'AM';
+            const adjustedHour = hour % 12 === 0 ? 12 : hour % 12;
+            return `${String(adjustedHour).padStart(2, '0')}:${String(minute).padStart(2, '0')} ${period}`;
+        }
+
+        // Initialize empty table for selected date
+        function initializeTable() {
+            routineTable.innerHTML = '';
+            timeSlots.forEach(time => {
+                const row = document.createElement('tr');
+                const displayTime = convertTo12Hour(time);
+                row.innerHTML = `
+                    <td>${displayTime}</td>
+                    <td class="task-slot free-slot" data-time="${time}">Free</td>
+                    <td><button class="delete-task" data-time="${time}" style="visibility: hidden;">Delete</button></td>
+                `;
+                routineTable.appendChild(row);
+            });
+        }
+
+        // Load tasks for selected date
+        function loadRoutineForDate(date) {
+            initializeTable();
+            if (routineData[date]) {
+                routineData[date].forEach(task => {
+                    const taskSlot = document.querySelector(`.task-slot[data-time="${task.time}"]`);
+                    const deleteButton = document.querySelector(`.delete-task[data-time="${task.time}"]`);
+                    if (taskSlot) {
+                        taskSlot.textContent = task.task;
+                        taskSlot.classList.remove('free-slot');
+                        taskSlot.classList.add('occupied-slot');
+                        deleteButton.style.visibility = 'visible'; // Show delete button for occupied slots
+                    }
+                });
+            }
+        }
+
+        // Date selector change event
+        document.getElementById('date-input').addEventListener('change', function () {
+            const selectedDate = this.value;
+            loadRoutineForDate(selectedDate);
+        });
+
+        // Handle adding or editing a task
+        document.getElementById('task-form').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const task = document.getElementById('task-input').value;
+            const time = document.getElementById('time-input').value;
+            const selectedDate = document.getElementById('date-input').value;
+
+            if (!selectedDate) {
+                alert('Please select a date.');
+                return;
+            }
+
+            // Initialize routine for the date if not already initialized
+            if (!routineData[selectedDate]) {
+                routineData[selectedDate] = [];
+            }
+
+            // Format the time to match table slots (HH:MM)
+            const formattedTime = time.slice(0, 5);
+
+            if (editingTask) {
+                // Update the task being edited
+                editingTask.task = task;
+                editingTask = null;
+            } else {
+                // Add new task
+                const taskSlot = document.querySelector(`.task-slot[data-time="${formattedTime}"]`);
+                const deleteButton = document.querySelector(`.delete-task[data-time="${formattedTime}"]`);
+
+                if (taskSlot) {
+                    taskSlot.textContent = task;
+                    taskSlot.classList.remove('free-slot');
+                    taskSlot.classList.add('occupied-slot');
+                    deleteButton.style.visibility = 'visible';
+
+                    routineData[selectedDate].push({ time: formattedTime, task });
+                } else {
+                    alert('Invalid time slot selected');
+                }
+            }
+
+            // Clear the input fields
+            document.getElementById('task-input').value = '';
+            document.getElementById('time-input').value = '';
+        });
+
+        // Event delegation for deleting tasks
+        routineTable.addEventListener('click', function (event) {
+            if (event.target.classList.contains('delete-task')) {
+                const time = event.target.getAttribute('data-time');
+                const selectedDate = document.getElementById('date-input').value;
+
+                // Remove task from the data
+                routineData[selectedDate] = routineData[selectedDate].filter(task => task.time !== time);
+
+                // Reset the time slot in the table
+                const taskSlot = document.querySelector(`.task-slot[data-time="${time}"]`);
+                taskSlot.textContent = 'Free';
+                taskSlot.classList.remove('occupied-slot');
+                taskSlot.classList.add('free-slot');
+
+                // Hide the delete button
+                event.target.style.visibility = 'hidden';
+            }
+        });
+
+        // Event delegation for editing tasks
+        routineTable.addEventListener('click', function (event) {
+            if (event.target.classList.contains('task-slot') && !event.target.classList.contains('free-slot')) {
+                const time = event.target.getAttribute('data-time');
+                const selectedDate = document.getElementById('date-input').value;
+
+                const task = routineData[selectedDate].find(task => task.time === time);
+                if (task) {
+                    document.getElementById('task-input').value = task.task;
+                    document.getElementById('time-input').value = time;
+                    editingTask = task; // Set the task to be edited
+                }
+            }
+        });
+
+        // Initialize table on page load
+        initializeTable();
+    </script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+        }
+        .container {
+            width: 90%;
+            margin: 0 auto;
+            max-width: 1000px;
+        }
+        h1 {
+            margin-top: 20px;
+            font-size: 2em;
+        }
+        h2 {
+            margin-top: 30px;
+            font-size: 1.5em;
+        }
+        button, input[type="file"] {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .upload-section {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Admin Panel</h1>
+
+        <!-- Meal Planner Section -->
+        <h2>Meal Planner</h2>
+        <form action="/upload-meal-plan" method="POST" enctype="multipart/form-data" class="upload-section">
+            <input type="file" name="mealPlanFile" accept=".csv, .xlsx" required>
+            <button type="submit">Upload Meal Plan</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Day</th>
+                    <th>Breakfast</th>
+                    <th>Lunch</th>
+                    <th>Dinner</th>
+                </tr>
+            </thead>
+            <tbody id="meal-plan-admin">
+                <!-- Meal Plan will be dynamically inserted here -->
+            </tbody>
+        </table>
+
+        <!-- Grocery List Section -->
+        <h2>Grocery Planner</h2>
+        <form action="/upload-grocery" method="POST" enctype="multipart/form-data" class="upload-section">
+            <input type="file" name="groceryFile" accept=".csv, .xlsx" required>
+            <button type="submit">Upload Grocery List</button>
+        </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Quantity</th>
+                    <th>Checked</th>
+                </tr>
+            </thead>
+            <tbody id="grocery-list-admin">
+                <!-- Grocery List will be dynamically inserted here -->
+            </tbody>
+        </table>
+
+        <!-- Sleep Tracker Section -->
+        <h2>Sleep Tracker</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Action</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Delete</th>
+                </tr>
+            </thead>
+            <tbody id="sleep-logs-admin">
+                <!-- Sleep Logs will be dynamically inserted here -->
+            </tbody>
+        </table>
+
+    </div>
+
+    <script>
+        // Fetch Meal Plan for Admin
+        function fetchMealPlanAdmin() {
+            fetch('/get-meal-plan')
+                .then(response => response.json())
+                .then(data => {
+                    const mealPlanTable = document.getElementById('meal-plan-admin');
+                    mealPlanTable.innerHTML = '';
+
+                    data.forEach(day => {
+                        const row = mealPlanTable.insertRow();
+                        row.innerHTML = `
+                            <td>${day.day}</td>
+                            <td>${day.breakfast || 'N/A'}</td>
+                            <td>${day.lunch || 'N/A'}</td>
+                            <td>${day.dinner || 'N/A'}</td>
+                        `;
+                    });
+                })
+                .catch(error => console.error('Error fetching meal plan:', error));
+        }
+
+        // Fetch Grocery List for Admin
+        function fetchGroceryListAdmin() {
+            fetch('/get-grocery-list')
+                .then(response => response.json())
+                .then(data => {
+                    const groceryListTable = document.getElementById('grocery-list-admin');
+                    groceryListTable.innerHTML = '';
+
+                    data.forEach(item => {
+                        const row = groceryListTable.insertRow();
+                        row.innerHTML = `
+                            <td>${item.name || 'N/A'}</td>
+                            <td>${item.quantity || 'N/A'}</td>
+                            <td>${item.checked ? '✔️' : '❌'}</td>
+                        `;
+                    });
+                })
+                .catch(error => console.error('Error fetching grocery list:', error));
+        }
+
+        // Fetch Sleep Logs for Admin
+        function fetchSleepLogsAdmin() {
+            fetch('/get-sleep-logs')
+                .then(response => response.json())
+                .then(data => {
+                    const sleepLogsTable = document.getElementById('sleep-logs-admin');
+                    sleepLogsTable.innerHTML = '';
+
+                    data.forEach((log, index) => {
+                        const logDate = new Date(log.time);  // Convert ISO string to Date object
+                        const row = sleepLogsTable.insertRow();
+                        row.innerHTML = `
+                            <td>${log.action}</td>
+                            <td>${logDate.toLocaleDateString()}</td>  
+                            <td>${logDate.toLocaleTimeString()}</td>  
+                            <td><button onclick="deleteSleepLog(${index})">Delete</button></td>
+                        `;
+                    });
+                })
+                .catch(error => console.error('Error fetching sleep logs:', error));
+        }
+
+        // Function to delete a sleep log
+        function deleteSleepLog(index) {
+            fetch(`/delete-sleep-log/${index}`, { method: 'DELETE' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    fetchSleepLogsAdmin();  // Refresh the sleep logs after deletion
+                })
+                .catch(error => console.error('Error deleting sleep log:', error));
+        }
+
+        // Fetch data when the page loads
+        fetchMealPlanAdmin();
+        fetchGroceryListAdmin();
+        fetchSleepLogsAdmin();
+    </script>
+
+</body>
+</html>

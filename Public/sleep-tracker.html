@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleep Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        button {
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Sleep Tracker</h1>
+
+    <button onclick="logSleepAction('sleep')">Log Sleep</button>
+    <button onclick="logSleepAction('wake')">Log Wake</button>
+
+    <h2>Sleep Logs</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Action</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody id="sleep-logs">
+            <!-- Sleep logs will be inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        function logSleepAction(action) {
+            const currentTime = new Date().toISOString();  // Store time in ISO format
+            fetch('/log-sleep', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ action, time: currentTime })
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data.message);
+                fetchSleepLogs();  // Refresh the logs
+            })
+            .catch(error => console.error('Error logging sleep action:', error));
+        }
+
+        function fetchSleepLogs() {
+            fetch('/get-sleep-logs')
+                .then(response => response.json())
+                .then(data => {
+                    const logsTable = document.getElementById('sleep-logs');
+                    logsTable.innerHTML = '';  // Clear existing logs
+
+                    data.forEach(log => {
+                        const logDate = new Date(log.time);  // Convert ISO string to Date object
+                        const row = logsTable.insertRow();
+                        row.innerHTML = `
+                            <td>${log.action}</td>
+                            <td>${logDate.toLocaleDateString()}</td>  <!-- Display formatted date -->
+                            <td>${logDate.toLocaleTimeString()}</td>  <!-- Display formatted time -->
+                        `;
+                    });
+                })
+                .catch(error => console.error('Error fetching sleep logs:', error));
+        }
+
+        // Fetch logs on page load
+        fetchSleepLogs();
+    </script>
+
+</body>
+</html>

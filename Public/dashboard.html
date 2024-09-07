@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shivani's Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+            margin-top: 20px;
+        }
+        .button {
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 10px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+        .notification {
+            margin-top: 30px;
+            font-size: 20px;
+            color: red;
+        }
+        #sos-button {
+            background-color: red;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 15px;
+            color: white;
+            font-size: 20px;
+            border: none;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Shivani's Dashboard</h1>
+    
+    <div class="notification">
+        <!-- Important notifications about tasks, sleep time, etc. will be shown here -->
+        <p>Reminder: Complete your task "Submit report" by 10:00 PM</p>
+    </div>
+
+    <button class="button" onclick="window.location.href='/meal-planner'">Meal Planner</button>
+    <button class="button" onclick="window.location.href='/routine-planner'">Routine Planner</button>
+    <button class="button" onclick="window.location.href='/gratitude-journal'">Gratitude Journal</button>
+    <button class="button" onclick="window.location.href='/sleep-tracker'">Sleep Tracker</button>
+    <button class="button" onclick="window.location.href='/to-do-list'">To-Do List</button>
+
+    <button id="sos-button" onclick="window.location.href='tel:+8618049891'">SOS</button>
+</body>
+</html>

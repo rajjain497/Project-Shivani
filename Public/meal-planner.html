@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meal Planner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+            padding: 20px;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <h1>Weekly Meal Planner</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Breakfast</th>
+                <th>Lunch</th>
+                <th>Dinner</th>
+                <th>Upload Meal Photo</th>
+            </tr>
+        </thead>
+        <tbody id="meal-plan">
+            <!-- Meal Plan Data will be dynamically inserted here -->
+        </tbody>
+    </table>
+
+    <button class="button" onclick="window.location.href='/grocery-list'">View Grocery List</button>
+
+    <script>
+        fetch('/get-meal-plan')
+            .then(response => response.json())
+            .then(data => {
+                const mealPlanTable = document.getElementById('meal-plan');
+                mealPlanTable.innerHTML = '';
+    
+                // Loop through the fixed days meal plan
+                data.forEach(day => {
+                    const row = mealPlanTable.insertRow();
+                    row.innerHTML = `
+                        <td>${day.day || 'N/A'}</td>
+                        <td>${day.breakfast || 'N/A'}</td>
+                        <td>${day.lunch || 'N/A'}</td>
+                        <td>${day.dinner || 'N/A'}</td>
+                        <td>
+                            <form action="/upload-meal-photo/${day.day}" method="POST" enctype="multipart/form-data">
+                                <input type="file" name="mealPhoto" accept="image/*">
+                                <button type="submit">Upload</button>
+                            </form>
+                        </td>
+                    `;
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching meal plan:', error);
+                document.getElementById('meal-plan').innerHTML = '<tr><td colspan="5">Error loading meal plan</td></tr>';
+            });
+    </script>
+    
+</body>
+</html>

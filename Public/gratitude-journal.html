@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gratitude Journal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            text-align: center;
+        }
+        table {
+            width: 80%;
+            margin: 20px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        input[type="text"], input[type="date"] {
+            width: 80%;
+            padding: 10px;
+            margin: 10px 0;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Gratitude Journal</h1>
+
+    <!-- Date selector for viewing or entering entries -->
+    <label for="entry-date">Select Date:</label>
+    <input type="date" id="entry-date" value="" onchange="fetchEntries()"><br><br>
+
+    <!-- Form to Add Gratitude Entries -->
+    <form id="gratitude-form">
+        <input type="text" id="entry1" placeholder="Enter the first gratitude entry" required><br>
+        <input type="text" id="entry2" placeholder="Enter the second gratitude entry" required><br>
+        <input type="text" id="entry3" placeholder="Enter the third gratitude entry" required><br>
+        <button type="submit" class="button">Submit Gratitude</button>
+    </form>
+
+    <h2>Gratitude Entries for <span id="selected-date">Today</span></h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Entry 1</th>
+                <th>Entry 2</th>
+                <th>Entry 3</th>
+            </tr>
+        </thead>
+        <tbody id="gratitude-entries">
+            <!-- Gratitude entries will be dynamically inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        // Set today's date as default
+        document.getElementById('entry-date').valueAsDate = new Date();
+
+        // Handle form submission
+        document.getElementById('gratitude-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const entryDate = document.getElementById('entry-date').value;
+            const entry1 = document.getElementById('entry1').value;
+            const entry2 = document.getElementById('entry2').value;
+            const entry3 = document.getElementById('entry3').value;
+
+            // Send the data to the server
+            fetch('/add-gratitude', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ entryDate, entry1, entry2, entry3 })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Gratitude entries saved successfully!');
+                fetchEntries();  // Refresh the gratitude entries list
+            })
+            .catch(error => console.error('Error saving gratitude entries:', error));
+        });
+
+        // Function to fetch and display gratitude entries
+        function fetchEntries() {
+            const entryDate = document.getElementById('entry-date').value;
+            document.getElementById('selected-date').innerText = entryDate;
+
+            fetch(`/get-gratitude-entries?date=${entryDate}`)
+                .then(response => response.json())
+                .then(data => {
+                    const gratitudeTable = document.getElementById('gratitude-entries');
+                    gratitudeTable.innerHTML = '';
+
+                    // Insert gratitude entries into the table
+                    if (data) {
+                        const row = gratitudeTable.insertRow();
+                        row.innerHTML = `
+                            <td>${data.entry1 || 'N/A'}</td>
+                            <td>${data.entry2 || 'N/A'}</td>
+                            <td>${data.entry3 || 'N/A'}</td>
+                        `;
+                    } else {
+                        const row = gratitudeTable.insertRow();
+                        row.innerHTML = `<td colspan="3">No entries found for this date</td>`;
+                    }
+                })
+                .catch(error => console.error('Error fetching gratitude entries:', error));
+        }
+
+        // Fetch entries when the page loads or date changes
+        fetchEntries();
+    </script>
+</body>
+</html>
