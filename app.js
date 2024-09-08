@@ -5,6 +5,7 @@ const bodyParser = require('body-parser');
 const csvParser = require('csv-parser');
 const xlsx = require('xlsx');
 const fs = require('fs');
+const mkdirp = require('mkdirp');
 
 // Create Express app
 const app = express();
@@ -15,6 +16,9 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve static files from the root directory
 app.use(express.static(path.join(__dirname, 'Public')));  // Make sure to use 'Public' as your static folder
+
+// Ensure upload directories exist
+mkdirp.sync('uploads/meals');
 
 // Data storage for meal plans, grocery lists, and other features
 let mealPlan = [];
@@ -243,57 +247,50 @@ app.post('/upload-meal-plan', upload.single('mealPlanFile'), (req, res) => {
 });
 
 // Upload grocery list (.csv or .xlsx)
+// Upload grocery list (.csv or .xlsx)
 app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
-  const filePath = req.file.path;
-  const fileExt = path.extname(req.file.originalname).toLowerCase();
-
-  if (fileExt === '.csv') {
-    const newGroceryList = [];
-    fs.createReadStream(filePath)
-      .pipe(csvParser())
-      .on('data', (row) => newGroceryList.push({ name: row.Name || row.name || 'N/A', quantity: row.Quantity  || row.quantity || 'N/A', checked: false }))
-      .on('end', () => {
-        groceryList = newGroceryList;
-        fs.unlinkSync(filePath);
-        res.send('Grocery list uploaded and processed from CSV.');
-      });
-  } else if (fileExt === '.xlsx') {
-    const workbook = xlsx.readFile(filePath);
-    const sheetName = workbook.SheetNames[0];
-    const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-    groceryList = sheetData.map(row => ({
-      name: row.Name || row.name || 'N/A',
-      quantity: row.Quantity || row.quantity || 'N/A',
-      checked: false
-    }));
-
-    fs.unlinkSync(filePath);
-    res.send('Grocery list uploaded and processed from XLSX.');
-  } else {
-    fs.unlinkSync(filePath);
-    res.status(400).send('Unsupported file format. Only .csv or .xlsx files allowed.');
-  }
-});
-
-// Fetch grocery list with quantity
-app.get('/get-grocery-list', (req, res) => {
-  const cleanedGroceryList = groceryList.map((item, index) => ({
-    id: index,
-    name: item.name || item.Name || 'N/A',
-    quantity: item.quantity || item.Quantity || 'N/A',
-    checked: item.checked || false
-  }));
-
-  res.json(cleanedGroceryList);
-});
-
-// ---------------------
-// Start Server
-// ---------------------
-
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
-
+    const filePath = req.file.path;
+    const fileExt = path.extname(req.file.originalname).toLowerCase();
+  
+    if (fileExt === '.csv') {
+      const newGroceryList = [];
+      fs.createReadStream(filePath)
+        .pipe(csvParser())
+        .on('data', (row) => newGroceryList.push({ 
+          name: row.Name || row.name || 'N/A', 
+          quantity: row.Quantity || row.quantity || 'N/A', 
+          checked: false 
+        }))
+        .on('end', () => {
+          groceryList = newGroceryList;
+          fs.unlinkSync(filePath);
+          res.send('Grocery list uploaded and processed from CSV.');
+        });
+    } else if (fileExt === '.xlsx') {
+      const workbook = xlsx.readFile(filePath);
+      const sheetName = workbook.SheetNames[0];
+      const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+  
+      groceryList = sheetData.map(row => ({
+        name: row.Name || row.name || 'N/A',
+        quantity: row.Quantity || row.quantity || 'N/A',
+        checked: false
+      }));
+  
+      fs.unlinkSync(filePath);
+      res.send('Grocery list uploaded and processed from XLSX.');
+    } else {
+      fs.unlinkSync(filePath);
+      res.status(400).send('Unsupported file format. Only .csv or .xlsx files allowed.');
+    }
+  });
+  
+  // ---------------------
+  // Start Server
+  // ---------------------
+  
+  const PORT = process.env.PORT || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+  
