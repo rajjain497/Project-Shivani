@@ -21,6 +21,8 @@ let mealPlan = [];
 let groceryList = [];
 let gratitudeEntriesByDate = {};
 let sleepLogs = [];
+let toDoList = [];
+let dailyRoutine = [];
 
 // Multer setup for meal photo uploads
 const storage = multer.diskStorage({
@@ -99,12 +101,12 @@ app.get('/get-grocery-list', (req, res) => {
 // ---------------------
 
 // Serve routine planner page
-app.get('/routine-planner', (req, res) => {
-  res.sendFile(path.join(__dirname, 'routine.html'));
-});
+app.get('/routine', (req, res) => {
+    res.sendFile(path.join(__dirname, 'routine.html'));
+  });
+  
 
 // Add task to routine planner
-let dailyRoutine = [];
 app.post('/add-task', (req, res) => {
   const { task, time } = req.body;
   dailyRoutine.push({ task, time });
@@ -124,11 +126,7 @@ app.get('/gratitude-journal', (req, res) => {
 app.post('/add-gratitude', (req, res) => {
   const { entryDate, entry1, entry2, entry3 } = req.body;
 
-  if (!gratitudeEntriesByDate[entryDate]) {
-    gratitudeEntriesByDate[entryDate] = { entry1, entry2, entry3 };
-  } else {
-    gratitudeEntriesByDate[entryDate] = { entry1, entry2, entry3 };
-  }
+  gratitudeEntriesByDate[entryDate] = { entry1, entry2, entry3 };
 
   res.json({ success: true, message: 'Gratitude entries saved successfully!', entries: gratitudeEntriesByDate });
 });
@@ -151,38 +149,27 @@ app.get('/sleep-tracker', (req, res) => {
 
 // Log sleep and wake times
 app.post('/log-sleep', (req, res) => {
-    const { action, time } = req.body;
-    const logTime = time ? new Date(time).toISOString() : new Date().toISOString();  // Ensure time is stored in ISO format
+  const { action, time } = req.body;
+  const logTime = time ? new Date(time).toISOString() : new Date().toISOString();  // Ensure time is stored in ISO format
   
-    sleepLogs.push({ action, time: logTime });
-    res.json({ success: true, message: `Logged ${action} time successfully at ${logTime}`, sleepLogs });
+  sleepLogs.push({ action, time: logTime });
+  res.json({ success: true, message: `Logged ${action} time successfully at ${logTime}`, sleepLogs });
 });
 
-// Fetch last 15 days of sleep logs
+// Fetch sleep logs
 app.get('/get-sleep-logs', (req, res) => {
-  const last15DaysLogs = sleepLogs.slice(-15);
-  res.json(last15DaysLogs);
+  res.json(sleepLogs.slice(-15));  // Return the last 15 sleep logs
 });
 
-// Route to delete an individual sleep log entry by index
-app.post('/delete-sleep-log', (req, res) => {
-    const { index } = req.body;
-    if (index >= 0 && index < sleepLogs.length) {
-      sleepLogs.splice(index, 1);
-      res.json({ success: true, message: 'Sleep log entry deleted successfully.', sleepLogs });
-    } else {
-      res.status(400).json({ success: false, message: 'Invalid index.' });
-    }
-});
-
+// Delete a sleep log by index
 app.delete('/delete-sleep-log/:index', (req, res) => {
   const index = parseInt(req.params.index);
-
+  
   if (index >= 0 && index < sleepLogs.length) {
-      sleepLogs.splice(index, 1);
-      res.json({ success: true, message: 'Sleep log deleted successfully!' });
+    sleepLogs.splice(index, 1);
+    res.json({ success: true, message: 'Sleep log deleted successfully!' });
   } else {
-      res.status(404).json({ success: false, message: 'Sleep log not found.' });
+    res.status(404).json({ success: false, message: 'Sleep log not found.' });
   }
 });
 
@@ -196,7 +183,6 @@ app.get('/to-do-list', (req, res) => {
 });
 
 // Add task to to-do list
-let toDoList = [];
 app.post('/add-todo', (req, res) => {
   const { task, deadline } = req.body;
   toDoList.push({ task, deadline });
@@ -226,9 +212,7 @@ app.post('/upload-meal-plan', upload.single('mealPlanFile'), (req, res) => {
     const newMealPlan = [];
     fs.createReadStream(filePath)
       .pipe(csvParser())
-      .on('data', (row) => {
-        newMealPlan.push(row);
-      })
+      .on('data', (row) => newMealPlan.push(row))
       .on('end', () => {
         mealPlan = newMealPlan;
         fs.unlinkSync(filePath);
@@ -248,7 +232,7 @@ app.post('/upload-meal-plan', upload.single('mealPlanFile'), (req, res) => {
   }
 });
 
-// Upload grocery list (.csv or .xlsx) with quantity
+// Upload grocery list (.csv or .xlsx)
 app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
   const filePath = req.file.path;
   const fileExt = path.extname(req.file.originalname).toLowerCase();
@@ -257,16 +241,10 @@ app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
     const newGroceryList = [];
     fs.createReadStream(filePath)
       .pipe(csvParser())
-      .on('data', (row) => {
-        newGroceryList.push({
-          name: row.Name || row.name || 'N/A',
-          quantity: row.Quantity || row.quantity || 'N/A',
-          checked: false
-        });
-      })
+      .on('data', (row) => newGroceryList.push({ name: row.Name || row.name || 'N/A', quantity: row.Quantity || row.quantity || 'N/A', checked: false }))
       .on('end', () => {
         groceryList = newGroceryList;
-        fs.unlinkSync(filePath);  // Delete the file after processing
+        fs.unlinkSync(filePath);
         res.send('Grocery list uploaded and processed from CSV.');
       });
   } else if (fileExt === '.xlsx') {
@@ -274,13 +252,9 @@ app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-    groceryList = sheetData.map(row => ({
-      name: row.Name || row.name || 'N/A',
-      quantity: row.Quantity || row.quantity || 'N/A',
-      checked: false
-    }));
+    groceryList = sheetData.map(row => ({ name: row.Name || row.name || 'N/A', quantity: row.Quantity || row.quantity || 'N/A', checked: false }));
 
-    fs.unlinkSync(filePath);  // Delete the file after processing
+    fs.unlinkSync(filePath);
     res.send('Grocery list uploaded and processed from XLSX.');
   } else {
     fs.unlinkSync(filePath);  // Delete the file if it's an unsupported format

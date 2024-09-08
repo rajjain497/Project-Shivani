@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Shivani</title>
-
-    <title>Meal Planner</title>
+    <title>Meal Planner | Project Shivani</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -62,13 +60,14 @@
     <button class="button" onclick="window.location.href='/grocery-list'">View Grocery List</button>
 
     <script>
+        // Fetch the meal plan data from the server
         fetch('/get-meal-plan')
             .then(response => response.json())
             .then(data => {
                 const mealPlanTable = document.getElementById('meal-plan');
                 mealPlanTable.innerHTML = '';
     
-                // Loop through the fixed days meal plan
+                // Loop through the meal plan data and populate the table
                 data.forEach(day => {
                     const row = mealPlanTable.insertRow();
                     row.innerHTML = `
@@ -90,6 +89,5 @@
                 document.getElementById('meal-plan').innerHTML = '<tr><td colspan="5">Error loading meal plan</td></tr>';
             });
     </script>
-    
 </body>
 </html>

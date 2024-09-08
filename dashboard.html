@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Shivani</title>
-
-    <title>Shivani's Dashboard</title>
+    <title>Shivani's Dashboard | Project Shivani</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -22,6 +20,9 @@
             color: white;
             border: none;
             border-radius: 5px;
+        }
+        .button:hover {
+            background-color: #45a049;
         }
         .notification {
             margin-top: 30px;
@@ -49,12 +50,14 @@
         <p>Reminder: Complete your task "Submit report" by 10:00 PM</p>
     </div>
 
+    <!-- Buttons to different sections of the app -->
     <button class="button" onclick="window.location.href='/meal-planner'">Meal Planner</button>
-    <button class="button" onclick="window.location.href='/routine-planner'">Routine Planner</button>
+    <button class="button" onclick="window.location.href='/routine'">Routine Planner</button>
     <button class="button" onclick="window.location.href='/gratitude-journal'">Gratitude Journal</button>
     <button class="button" onclick="window.location.href='/sleep-tracker'">Sleep Tracker</button>
     <button class="button" onclick="window.location.href='/to-do-list'">To-Do List</button>
 
+    <!-- SOS Button -->
     <button id="sos-button" onclick="window.location.href='tel:+8618049891'">SOS</button>
 </body>
 </html>

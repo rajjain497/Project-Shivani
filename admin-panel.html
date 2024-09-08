@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Shivani</title>
-
-    <title>Admin Panel</title>
+    <title>Admin Panel | Project Shivani</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -60,7 +58,7 @@
 
         <!-- Meal Planner Section -->
         <h2>Meal Planner</h2>
-        <form action="/upload-meal-plan" method="POST" enctype="multipart/form-data" class="upload-section">
+        <form class="upload-section" id="mealPlanForm" enctype="multipart/form-data">
             <input type="file" name="mealPlanFile" accept=".csv, .xlsx" required>
             <button type="submit">Upload Meal Plan</button>
         </form>
@@ -80,7 +78,7 @@
 
         <!-- Grocery List Section -->
         <h2>Grocery Planner</h2>
-        <form action="/upload-grocery" method="POST" enctype="multipart/form-data" class="upload-section">
+        <form class="upload-section" id="groceryListForm" enctype="multipart/form-data">
             <input type="file" name="groceryFile" accept=".csv, .xlsx" required>
             <button type="submit">Upload Grocery List</button>
         </form>
@@ -116,6 +114,38 @@
     </div>
 
     <script>
+        // Handle meal plan upload
+        document.getElementById('mealPlanForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('/upload-meal-plan', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Meal plan uploaded successfully');
+                fetchMealPlanAdmin(); // Refresh the meal plan
+            })
+            .catch(error => console.error('Error uploading meal plan:', error));
+        });
+
+        // Handle grocery list upload
+        document.getElementById('groceryListForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch('/upload-grocery', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Grocery list uploaded successfully');
+                fetchGroceryListAdmin(); // Refresh the grocery list
+            })
+            .catch(error => console.error('Error uploading grocery list:', error));
+        });
+
         // Fetch Meal Plan for Admin
         function fetchMealPlanAdmin() {
             fetch('/get-meal-plan')
@@ -170,8 +200,8 @@
                         const row = sleepLogsTable.insertRow();
                         row.innerHTML = `
                             <td>${log.action}</td>
-                            <td>${logDate.toLocaleDateString()}</td>  
-                            <td>${logDate.toLocaleTimeString()}</td>  
+                            <td>${logDate.toLocaleDateString()}</td>
+                            <td>${logDate.toLocaleTimeString()}</td>
                             <td><button onclick="deleteSleepLog(${index})">Delete</button></td>
                         `;
                     });

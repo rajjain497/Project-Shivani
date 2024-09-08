@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Shivani</title>
-
-    <title>Admin Login</title>
+    <title>Admin Login | Project Shivani</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,12 +17,14 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             display: inline-block;
+            width: 300px;
         }
         input {
             padding: 10px;
             width: 100%;
             margin: 10px 0;
             font-size: 16px;
+            box-sizing: border-box;
         }
         button {
             padding: 10px 20px;
@@ -34,16 +34,48 @@
             border-radius: 5px;
             cursor: pointer;
         }
+        button:hover {
+            background-color: #45a049;
+        }
+        .error {
+            color: red;
+            display: none;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
     <h1>Admin Login</h1>
     <div class="login-box">
-        <form action="/admin-panel" method="GET">
-            <input type="text" placeholder="Username" required><br>
-            <input type="password" placeholder="Password" required><br>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Username" required><br>
+            <input type="password" id="password" placeholder="Password" required><br>
             <button type="submit">Login</button>
+            <div class="error" id="errorMsg">Invalid login details. Please try again.</div>
         </form>
     </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form from submitting
+
+            // Simulated login credentials
+            const correctUsername = "admin";
+            const correctPassword = "password123";
+
+            // Get the entered values
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            // Check if login is correct
+            if (username === correctUsername && password === correctPassword) {
+                // Simulate redirect to admin panel
+                window.location.href = "admin-panel.html"; // Make sure this file exists in your project
+            } else {
+                // Show error message
+                document.getElementById('errorMsg').style.display = "block";
+            }
+        });
+    </script>
 </body>
 </html>
