@@ -101,7 +101,7 @@ app.get('/get-grocery-list', (req, res) => {
 // ---------------------
 
 // Serve routine planner page
-app.get('/routine', (req, res) => {
+app.get('/routine-planner', (req, res) => {
   res.sendFile(path.join(__dirname, 'Public/routine.html'));
 });
 
