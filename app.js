@@ -14,9 +14,9 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve static files from the root directory
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname, 'Public')));  // Make sure to use 'Public' as your static folder
 
-// Meal plan and grocery data (initially empty, admin will upload them)
+// Data storage for meal plans, grocery lists, and other features
 let mealPlan = [];
 let groceryList = [];
 let gratitudeEntriesByDate = {};
@@ -41,17 +41,17 @@ const upload = multer({ storage });
 
 // Serve Shivani login page
 app.get('/shivani-login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'shivani-login.html'));
+  res.sendFile(path.join(__dirname, 'Public/shivani-login.html'));
 });
 
 // Serve Shivani dashboard page
 app.get('/dashboard', (req, res) => {
-  res.sendFile(path.join(__dirname, 'dashboard.html'));
+  res.sendFile(path.join(__dirname, 'Public/dashboard.html'));
 });
 
 // Serve Shivani meal planner
 app.get('/meal-planner', (req, res) => {
-  res.sendFile(path.join(__dirname, 'meal-planner.html'));
+  res.sendFile(path.join(__dirname, 'Public/meal-planner.html'));
 });
 
 // Fetch meal plan for Shivani
@@ -62,10 +62,10 @@ app.get('/get-meal-plan', (req, res) => {
   const cleanedMealPlan = daysOfWeek.map((day, index) => {
     const mealData = mealPlan[index] || {};
     return {
-      day: day,
+      day,
       breakfast: mealData.breakfast || mealData.Breakfast || 'N/A',
       lunch: mealData.lunch || mealData.Lunch || 'N/A',
-      dinner: mealData.dinner || mealData.Dinner || 'N/A'
+      dinner: mealData.dinner || mealData.Dinner || 'N/A',
     };
   });
 
@@ -81,7 +81,7 @@ app.post('/upload-meal-photo/:day', upload.single('mealPhoto'), (req, res) => {
 
 // Serve Shivani's grocery list
 app.get('/grocery-list', (req, res) => {
-  res.sendFile(path.join(__dirname, 'grocery-list.html'));
+  res.sendFile(path.join(__dirname, 'Public/grocery-list.html'));
 });
 
 // Fetch grocery list for Shivani
@@ -102,9 +102,8 @@ app.get('/get-grocery-list', (req, res) => {
 
 // Serve routine planner page
 app.get('/routine', (req, res) => {
-    res.sendFile(path.join(__dirname, 'routine.html'));
-  });
-  
+  res.sendFile(path.join(__dirname, 'Public/routine.html'));
+});
 
 // Add task to routine planner
 app.post('/add-task', (req, res) => {
@@ -119,7 +118,7 @@ app.post('/add-task', (req, res) => {
 
 // Serve gratitude journal page
 app.get('/gratitude-journal', (req, res) => {
-  res.sendFile(path.join(__dirname, 'gratitude-journal.html'));
+  res.sendFile(path.join(__dirname, 'Public/gratitude-journal.html'));
 });
 
 // Add gratitude entries for a specific date
@@ -144,14 +143,14 @@ app.get('/get-gratitude-entries', (req, res) => {
 
 // Serve sleep tracker page
 app.get('/sleep-tracker', (req, res) => {
-  res.sendFile(path.join(__dirname, 'sleep-tracker.html'));
+  res.sendFile(path.join(__dirname, 'Public/sleep-tracker.html'));
 });
 
 // Log sleep and wake times
 app.post('/log-sleep', (req, res) => {
   const { action, time } = req.body;
   const logTime = time ? new Date(time).toISOString() : new Date().toISOString();  // Ensure time is stored in ISO format
-  
+
   sleepLogs.push({ action, time: logTime });
   res.json({ success: true, message: `Logged ${action} time successfully at ${logTime}`, sleepLogs });
 });
@@ -164,7 +163,7 @@ app.get('/get-sleep-logs', (req, res) => {
 // Delete a sleep log by index
 app.delete('/delete-sleep-log/:index', (req, res) => {
   const index = parseInt(req.params.index);
-  
+
   if (index >= 0 && index < sleepLogs.length) {
     sleepLogs.splice(index, 1);
     res.json({ success: true, message: 'Sleep log deleted successfully!' });
@@ -179,14 +178,25 @@ app.delete('/delete-sleep-log/:index', (req, res) => {
 
 // Serve to-do list page
 app.get('/to-do-list', (req, res) => {
-  res.sendFile(path.join(__dirname, 'to-do-list.html'));
+  res.sendFile(path.join(__dirname, 'Public/to-do-list.html'));
 });
 
 // Add task to to-do list
 app.post('/add-todo', (req, res) => {
-  const { task, deadline } = req.body;
-  toDoList.push({ task, deadline });
+  const { task, date, time } = req.body;
+  toDoList.push({ task, date, time });
   res.json({ success: true, message: 'To-do task added successfully!', toDoList });
+});
+
+// Delete a task from the to-do list
+app.post('/delete-todo', (req, res) => {
+  const { index } = req.body;
+  if (index >= 0 && index < toDoList.length) {
+    toDoList.splice(index, 1);
+    res.json({ success: true, message: 'To-do task deleted successfully!', toDoList });
+  } else {
+    res.status(400).json({ success: false, message: 'Invalid task index.' });
+  }
 });
 
 // ---------------------
@@ -195,12 +205,12 @@ app.post('/add-todo', (req, res) => {
 
 // Serve Admin login page
 app.get('/admin-login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin-login.html'));
+  res.sendFile(path.join(__dirname, 'Public/admin-login.html'));
 });
 
 // Serve Admin dashboard
 app.get('/admin-panel', (req, res) => {
-  res.sendFile(path.join(__dirname, 'admin-panel.html'));
+  res.sendFile(path.join(__dirname, 'Public/admin-panel.html'));
 });
 
 // Upload meal plan (.csv or .xlsx)
@@ -241,7 +251,7 @@ app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
     const newGroceryList = [];
     fs.createReadStream(filePath)
       .pipe(csvParser())
-      .on('data', (row) => newGroceryList.push({ name: row.Name || row.name || 'N/A', quantity: row.Quantity || row.quantity || 'N/A', checked: false }))
+      .on('data', (row) => newGroceryList.push({ name: row.Name || row.name || 'N/A', quantity: row.Quantity  || row.quantity || 'N/A', checked: false }))
       .on('end', () => {
         groceryList = newGroceryList;
         fs.unlinkSync(filePath);
@@ -252,12 +262,16 @@ app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
     const sheetName = workbook.SheetNames[0];
     const sheetData = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
-    groceryList = sheetData.map(row => ({ name: row.Name || row.name || 'N/A', quantity: row.Quantity || row.quantity || 'N/A', checked: false }));
+    groceryList = sheetData.map(row => ({
+      name: row.Name || row.name || 'N/A',
+      quantity: row.Quantity || row.quantity || 'N/A',
+      checked: false
+    }));
 
     fs.unlinkSync(filePath);
     res.send('Grocery list uploaded and processed from XLSX.');
   } else {
-    fs.unlinkSync(filePath);  // Delete the file if it's an unsupported format
+    fs.unlinkSync(filePath);
     res.status(400).send('Unsupported file format. Only .csv or .xlsx files allowed.');
   }
 });
@@ -265,13 +279,12 @@ app.post('/upload-grocery', upload.single('groceryFile'), (req, res) => {
 // Fetch grocery list with quantity
 app.get('/get-grocery-list', (req, res) => {
   const cleanedGroceryList = groceryList.map((item, index) => ({
-    id: index,  // Assign index as ID
+    id: index,
     name: item.name || item.Name || 'N/A',
     quantity: item.quantity || item.Quantity || 'N/A',
     checked: item.checked || false
   }));
 
-  console.log('Grocery List Sent to Frontend:', cleanedGroceryList);  // Log the grocery list being sent to frontend
   res.json(cleanedGroceryList);
 });
 

@@ -69,8 +69,8 @@
 
             // Check if login is correct
             if (username === correctUsername && password === correctPassword) {
-                // Simulate redirect to admin panel
-                window.location.href = "admin-panel.html"; // Make sure this file exists in your project
+                // Redirect to the admin panel (use server-side route in app.js)
+                window.location.href = "/admin-panel"; 
             } else {
                 // Show error message
                 document.getElementById('errorMsg').style.display = "block";

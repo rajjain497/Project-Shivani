@@ -62,12 +62,28 @@
             <td>${item.name}</td>
             <td>${item.quantity}</td>
             <td>
-              <input type="checkbox" id="grocery-item-${item.id}" ${item.checked ? 'checked' : ''}>
+              <input type="checkbox" id="grocery-item-${item.id}" ${item.checked ? 'checked' : ''} onchange="updateItemStatus(${item.id}, this.checked)">
             </td>
           `;
         });
       })
       .catch(error => console.error('Error fetching grocery list:', error));
+
+    // Update item status when checkbox is changed
+    function updateItemStatus(itemId, isChecked) {
+      fetch(`/update-grocery-item/${itemId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ checked: isChecked })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log('Item status updated:', data);
+      })
+      .catch(error => console.error('Error updating item status:', error));
+    }
   </script>
 </body>
 </html>
